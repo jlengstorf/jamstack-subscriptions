@@ -15,5 +15,50 @@
       Get your subscription today to access the goodest corgos on the internet.
     </p>
     <div data-netlify-identity-button>Login with Netlify Identity</div>
+
+    <h2>
+      Manage Your Subscription
+    </h2>
+    <button id="manage-sub">Manage Subscription</button>
+    <pre></pre>
+
+    <script>
+      window.netlifyIdentity.on('init', (user) => {
+        if (!user) return;
+
+        window.netlifyIdentity
+          .currentUser()
+          .jwt(true)
+          .then((token) => {
+            const currentUser = window.netlifyIdentity.currentUser();
+
+            const { roles } = currentUser.app_metadata;
+
+            document.querySelector('pre').innerText = JSON.stringify(
+              roles,
+              null,
+              2
+            );
+
+            function redirectToManage() {
+              fetch('/.netlify/functions/create-manage-link', {
+                method: 'POST',
+                headers: {
+                  Authorization: `Bearer ${token}`,
+                },
+              })
+                .then((res) => res.json())
+                .then((link) => {
+                  window.location.href = link;
+                })
+                .catch((err) => console.error(err));
+            }
+
+            document
+              .querySelector('#manage-sub')
+              .addEventListener('click', redirectToManage);
+          });
+      });
+    </script>
   </body>
 </html>
