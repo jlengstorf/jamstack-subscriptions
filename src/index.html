@@ -16,6 +16,8 @@
     </p>
     <div data-netlify-identity-button>Login with Netlify Identity</div>
 
+    <div id="premium"></div>
+
     <h2>
       Manage Your Subscription
     </h2>
@@ -30,8 +32,8 @@
           .currentUser()
           .jwt(true)
           .then((token) => {
-            const currentUser = window.netlifyIdentity.currentUser();
-
+            const parts = token.split('.');
+            const currentUser = JSON.parse(atob(parts[1]));
             const { roles } = currentUser.app_metadata;
 
             document.querySelector('pre').innerText = JSON.stringify(
@@ -57,6 +59,22 @@
             document
               .querySelector('#manage-sub')
               .addEventListener('click', redirectToManage);
+
+            function getPremiumContent() {
+              fetch('/.netlify/functions/get-premium-content', {
+                method: 'POST',
+                headers: {
+                  Authorization: `Bearer ${token}`,
+                },
+              })
+                .then((res) => res.text())
+                .then((content) => {
+                  document.querySelector('#premium').innerText = content;
+                })
+                .catch((err) => console.error(err));
+            }
+
+            getPremiumContent();
           });
       });
     </script>
